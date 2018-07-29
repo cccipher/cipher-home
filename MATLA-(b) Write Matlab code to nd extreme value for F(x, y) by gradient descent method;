@@ -1,0 +1,58 @@
+/*
+Given function F(x; y) = 0.2x2 + 0.1y2 + sin(x + y), please work out its gradient. Based on
+the gradient, please nd out the local extreme of function F(x,y) when both x and y are in the
+range of [-2*pi, 2*pi]. The 2D and 3D views of the function is given in Fig. 1.
+Requirements:
+(a) Work out the gradient for F(x, y) and show it in the report;
+(b) Write Matlab code to nd extreme value for F(x, y) by gradient descent method;
+(c) Write a report to show your solution and analysis. Please visualize the gradient descent
+steps along with either its 3D view or the function contour
+*/
+
+%定义变量和方程
+syms X Y;
+f = 0.2*X^2+0.1*Y^2+sin(X+Y);
+
+x(1) = -3;
+y(1) = -3;
+a = 10^(-8); 
+i = 1;
+% 梯度计算
+dx = diff(f, X);
+dy = diff(f, Y);
+v0 = [subs(dx,[X,Y], [x(1),y(1)]) subs(dy, [X,Y], [x(1),y(1)])]; 
+v1= -(v0); % 搜索向量方向
+
+% 迭代计算
+while norm(v0) > a 
+    I = [x(i),y(i)]';
+    syms h;
+    h = 0.1;
+    x(i+1) = I(1)+h*v1(1); 
+    y(i+1) = I(2)+h*v1(2);
+    i = i+1;
+    v0 = [subs(dx,[X,Y], [x(i),y(i)]) subs(dy, [X,Y], [x(i),y(i)])]; 
+    v1 = -(v0); 
+end
+
+% 结果输出
+X_coordinate = x';
+Y_coordinate = y';
+f_optimal=0.2*X_coordinate.^2+0.1*Y_coordinate.^2+sin(X_coordinate+Y_coordinate);
+T = table(X_coordinate,Y_coordinate,f_optimal);
+disp(T)
+
+plot(x,y,'*')
+xlabel('x');ylabel('y');
+
+
+x=linspace(-2, 2, 25);
+y=linspace(-2, 2, 25);
+[xx, yy]=meshgrid(x, y);
+zz=0.2*xx^2+0.1*yy^2+sin(xx+yy);
+mesh(xx, yy, zz);
+colorbar;
+
+[x,y]=meshgrid(linspace(-6,6));
+z =0.2*x^2+0.1*y^2+sin(x+y); % 计算网格点处曲面上的Z值  
+contour(x,y,z,10)
