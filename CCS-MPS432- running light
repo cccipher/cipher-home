@@ -1,0 +1,95 @@
+//A running light to LED1, RED, GREEN, BLUE
+
+#include <ti/devices/msp432p4xx/driverlib/driverlib.h>
+
+int main(void)
+{
+    volatile uint32_t i;
+
+    // Stop watchdog timer
+    WDT_A_hold(WDT_A_BASE);
+
+    // Set P1.0 to output direction
+    GPIO_setAsOutputPin(
+        GPIO_PORT_P1,
+        GPIO_PIN0
+        );
+
+    // Set P2.0 to output direction
+    GPIO_setAsOutputPin(
+        GPIO_PORT_P2,
+        GPIO_PIN0
+        );
+
+    // Set P2.1 to output direction
+    GPIO_setAsOutputPin(
+        GPIO_PORT_P2,
+        GPIO_PIN1
+        );
+
+    // Set P2.2 to output direction
+    GPIO_setAsOutputPin(
+        GPIO_PORT_P2,
+        GPIO_PIN2
+        );
+
+    while(1)
+    {
+        //  P1.0 output
+        GPIO_setOutputHighOnPin(
+                GPIO_PORT_P1,
+                GPIO_PIN0
+        );
+
+        // Delay
+        for(i=100000; i>0; i--);
+
+        GPIO_setOutputLowOnPin(
+                GPIO_PORT_P1,
+                GPIO_PIN0
+        );
+
+        //  P2.0 output
+        GPIO_setOutputHighOnPin(
+                GPIO_PORT_P2,
+                GPIO_PIN0
+        );
+
+        // Delay
+        for(i=100000; i>0; i--);
+
+        GPIO_setOutputLowOnPin(
+                GPIO_PORT_P2,
+                GPIO_PIN0
+        );
+
+        //  P2.1 output
+        GPIO_setOutputHighOnPin(
+                GPIO_PORT_P2,
+                GPIO_PIN1
+        );
+
+        // Delay
+        for(i=100000; i>0; i--);
+
+        GPIO_setOutputLowOnPin(
+                GPIO_PORT_P2,
+                GPIO_PIN1
+        );
+
+        //  P2.2 output
+        GPIO_setOutputHighOnPin(
+                GPIO_PORT_P2,
+                GPIO_PIN2
+        );
+
+        // Delay
+        for(i=100000; i>0; i--);
+
+        GPIO_setOutputLowOnPin(
+                GPIO_PORT_P2,
+                GPIO_PIN2
+        );
+
+    }
+}
