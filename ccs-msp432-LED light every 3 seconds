@@ -1,0 +1,115 @@
+ //Use timer LED1 to light every 3 seconds
+
+#include <ti/devices/msp432p4xx/driverlib/driverlib.h>
+
+/* Standard Includes */
+#include <stdint.h>
+#include <stdbool.h>
+
+char LED_ON[]="LED_ON";
+char LED_OFF[]="LED_OFF";
+char LED_TEST[]="LED_TEST";
+int a=0,b=0,c=0,charnum=0;
+char light='0';
+
+const eUSCI_UART_Config uartConfig =
+{
+        EUSCI_A_UART_CLOCKSOURCE_SMCLK,          // SMCLK Clock Source
+        78,                                     // BRDIV = 78
+        2,                                       // UCxBRF = 2
+        0,                                       // UCxBRS = 0
+        EUSCI_A_UART_NO_PARITY,                  // No Parity
+        EUSCI_A_UART_LSB_FIRST,                  // LSB First
+        EUSCI_A_UART_ONE_STOP_BIT,               // One stop bit
+        EUSCI_A_UART_MODE,                       // UART mode
+        EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION  // Oversampling
+};
+
+int main(void)
+{
+    /* Halting WDT  */
+    MAP_WDT_A_holdTimer();
+
+    /* Selecting P1.2 and P1.3 in UART mode */
+    MAP_GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
+            GPIO_PIN1 | GPIO_PIN2 | GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
+
+    MAP_GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN0);
+       GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN0);
+
+    /* Setting DCO to 12MHz */
+    CS_setDCOCenteredFrequency(CS_DCO_FREQUENCY_12);
+
+    /* Configuring UART Module */
+    MAP_UART_initModule(EUSCI_A0_BASE, &uartConfig);
+
+    /* Enable UART module */
+    MAP_UART_enableModule(EUSCI_A0_BASE);
+
+
+    /* Enabling interrupts */
+    MAP_UART_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
+    MAP_Interrupt_enableInterrupt(INT_EUSCIA0);
+    MAP_Interrupt_enableSleepOnIsrExit();
+    MAP_Interrupt_enableMaster();   
+
+    while(1)
+    {
+        MAP_PCM_gotoLPM0();
+    }
+}
+
+void EUSCIA0_IRQHandler(void)
+{
+    uint32_t status = MAP_UART_getEnabledInterruptStatus(EUSCI_A0_BASE);
+
+    MAP_UART_clearInterruptFlag(EUSCI_A0_BASE, status);
+
+    if(status & EUSCI_A_UART_RECEIVE_INTERRUPT_FLAG)
+    {
+        if(MAP_UART_receiveData(EUSCI_A0_BASE)==10)
+        {
+            if(a==6&&charnum==6)
+            {
+                GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN0);
+                light='1';
+                a=0;
+            }
+
+            if(b==7&&charnum==7)
+            {
+                GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN0);
+                light='0';
+                charnum=0;
+            }
+
+            if(c==8&&charnum==8)
+            {
+                MAP_UART_transmitData(EUSCI_A0_BASE, light);
+                c=0;
+            }
+            charnum=0;
+            a=0;
+            b=0;
+            c=0;
+        }
+        else
+        {
+            charnum++;
+            if(MAP_UART_receiveData(EUSCI_A0_BASE)==LED_ON[a])
+                a++;
+            else a=0;
+
+            if(MAP_UART_receiveData(EUSCI_A0_BASE)==LED_OFF[b])
+                b++;
+            else b=0;
+
+            if(MAP_UART_receiveData(EUSCI_A0_BASE)==LED_TEST[c])
+                c++;
+            else c=0;
+        }
+
+    }
+
+}
+
